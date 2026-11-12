@@ -1,0 +1,483 @@
+<Window x:Class="WPFProject.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WPFProject"
+        mc:Ignorable="d"
+        Title="ABB EGM 控制台"
+        Height="820" Width="1240" MinHeight="700" MinWidth="1060"
+        WindowStartupLocation="CenterScreen"
+        Background="#FFF1F5F9"
+        FontFamily="Microsoft YaHei UI"
+        FontSize="13"
+        UseLayoutRounding="True">
+
+    <Window.Resources>
+        <SolidColorBrush x:Key="PanelBrush" Color="#FFFFFFFF" />
+        <SolidColorBrush x:Key="CardBorderBrush" Color="#FFE2E8F0" />
+        <SolidColorBrush x:Key="MutedBrush" Color="#FF64748B" />
+        <SolidColorBrush x:Key="AccentBrush" Color="#FF2563EB" />
+        <SolidColorBrush x:Key="ValueBackgroundBrush" Color="#FFF8FAFC" />
+
+        <Style x:Key="CardStyle" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource PanelBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource CardBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="Padding" Value="14" />
+            <Setter Property="Margin" Value="6" />
+        </Style>
+
+        <Style x:Key="SectionTitleStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="15" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="#FF0F172A" />
+            <Setter Property="Margin" Value="0,0,0,8" />
+        </Style>
+
+        <Style x:Key="CaptionStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Foreground" Value="{StaticResource MutedBrush}" />
+        </Style>
+
+        <Style x:Key="MonoValueStyle" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="Consolas" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="Foreground" Value="#FF0F172A" />
+        </Style>
+
+        <Style x:Key="AxisLabelStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Foreground" Value="{StaticResource MutedBrush}" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
+        <Style x:Key="JogButtonStyle" TargetType="Button">
+            <Setter Property="Height" Value="42" />
+            <Setter Property="Margin" Value="3" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Background" Value="{StaticResource ValueBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="#FFCBD5E1" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+
+        <Style x:Key="PrimaryButtonStyle" TargetType="Button">
+            <Setter Property="Height" Value="34" />
+            <Setter Property="Padding" Value="16,0" />
+            <Setter Property="Margin" Value="0,0,8,0" />
+            <Setter Property="Background" Value="{StaticResource AccentBrush}" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+
+        <Style x:Key="SecondaryButtonStyle" TargetType="Button">
+            <Setter Property="Height" Value="34" />
+            <Setter Property="Padding" Value="12,0" />
+            <Setter Property="Margin" Value="0" />
+            <Setter Property="Background" Value="#FFE2E8F0" />
+            <Setter Property="Foreground" Value="#FF0F172A" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+
+        <Style x:Key="ValueBoxStyle" TargetType="TextBox">
+            <Setter Property="Height" Value="30" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="FontFamily" Value="Consolas" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Margin" Value="0,2" />
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="4">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="158" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- 会话状态栏 -->
+        <Border Grid.Row="0" Style="{StaticResource CardStyle}" Padding="16,10" Margin="6,6,6,0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <Border x:Name="SessionStateBadge"
+                            Background="#FFDC2626"
+                            CornerRadius="14"
+                            Padding="14,6"
+                            Margin="0,0,14,0">
+                        <TextBlock x:Name="SessionStateText"
+                                   Text="DISCONNECTED"
+                                   Foreground="White"
+                                   FontWeight="Bold"
+                                   FontSize="14" />
+                    </Border>
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock x:Name="SessionStateDetailText"
+                                   Text="反馈超时或尚未连接；发送已暂停，移动已禁用。"
+                                   FontWeight="SemiBold" />
+                        <TextBlock x:Name="RemoteEndPointText"
+                                   Text="远端：—"
+                                   FontSize="12"
+                                   Foreground="{StaticResource MutedBrush}"
+                                   Margin="0,2,0,0" />
+                    </StackPanel>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <StackPanel Margin="0,0,18,0">
+                        <TextBlock Text="反馈延时" Style="{StaticResource CaptionStyle}" />
+                        <TextBlock x:Name="FeedbackAgeText" Text="—" Style="{StaticResource MonoValueStyle}" />
+                    </StackPanel>
+                    <StackPanel Margin="0,0,18,0">
+                        <TextBlock Text="MCI 状态" Style="{StaticResource CaptionStyle}" />
+                        <TextBlock x:Name="MciStateText" Text="—" Style="{StaticResource MonoValueStyle}" />
+                    </StackPanel>
+                    <StackPanel Margin="0,0,18,0">
+                        <TextBlock Text="接收帧数" Style="{StaticResource CaptionStyle}" />
+                        <TextBlock x:Name="FrameCountText" Text="0" Style="{StaticResource MonoValueStyle}" />
+                    </StackPanel>
+                    <StackPanel>
+                        <TextBlock Text="MCI 收敛" Style="{StaticResource CaptionStyle}" />
+                        <TextBlock x:Name="ConvergedText" Text="—" Style="{StaticResource MonoValueStyle}" />
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- 主内容 -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="390" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="360" />
+            </Grid.ColumnDefinitions>
+
+            <!-- 点动 -->
+            <Border Grid.Column="0" Style="{StaticResource CardStyle}">
+                <StackPanel>
+                    <TextBlock Text="手动点动" Style="{StaticResource SectionTitleStyle}" />
+                    <TextBlock Text="平移步长 10 mm · 旋转步长 2° · 仅 RUNNING 时可用"
+                               Style="{StaticResource CaptionStyle}"
+                               Margin="0,0,0,8" />
+
+                    <StackPanel x:Name="JogPanel" IsEnabled="False">
+                        <TextBlock Text="平移（基坐标系）" FontWeight="SemiBold" Margin="0,4,0,2" />
+                        <UniformGrid Columns="3">
+                            <Button Content="X +" Style="{StaticResource JogButtonStyle}"
+                                    ToolTip="沿 X+ 平移 10 mm"
+                                    Click="Translation_ForwardButton_Click"/>
+                            <Button Content="Y +" Style="{StaticResource JogButtonStyle}"
+                                    ToolTip="沿 Y+ 平移 10 mm"
+                                    Click="Translation_LeftButton_Click" />
+                            <Button Content="Z +" Style="{StaticResource JogButtonStyle}"
+                                    ToolTip="沿 Z+ 平移 10 mm"
+                                    Click="Translation_UpButton_Click" />
+                            <Button Content="X −" Style="{StaticResource JogButtonStyle}"
+                                    ToolTip="沿 X− 平移 10 mm"
+                                    Click="Translation_BackwardButton_Click"/>
+                            <Button Content="Y −" Style="{StaticResource JogButtonStyle}"
+                                    ToolTip="沿 Y− 平移 10 mm"
+                                    Click="Translation_RightButton_Click" />
+                            <Button Content="Z −" Style="{StaticResource JogButtonStyle}"
+                                    ToolTip="沿 Z− 平移 10 mm"
+                                    Click="Translation_DownButton_Click" />
+                        </UniformGrid>
+
+                        <TextBlock Text="旋转（欧拉角）" FontWeight="SemiBold" Margin="0,14,0,2" />
+                        <UniformGrid Columns="3">
+                            <Button Content="Rx +" Style="{StaticResource JogButtonStyle}"
+                                    ToolTip="绕 X 旋转 2°"
+                                    Click="Rotation_ForwardButton_Click" />
+                            <Button Content="Ry +" Style="{StaticResource JogButtonStyle}"
+                                    ToolTip="绕 Y 旋转 2°"
+                                    Click="Rotation_RightButton_Click" />
+                            <Button Content="Rz +" Style="{StaticResource JogButtonStyle}"
+                                    ToolTip="绕 Z 旋转 2°"
+                                    Click="Rotation_UpButton_Click" />
+                            <Button Content="Rx −" Style="{StaticResource JogButtonStyle}"
+                                    ToolTip="绕 X 旋转 -2°"
+                                    Click="Rotation_BackwardButton_Click" />
+                            <Button Content="Ry −" Style="{StaticResource JogButtonStyle}"
+                                    ToolTip="绕 Y 旋转 -2°"
+                                    Click="Rotation_LeftButton_Click" />
+                            <Button Content="Rz −" Style="{StaticResource JogButtonStyle}"
+                                    ToolTip="绕 Z 旋转 -2°"
+                                    Click="Rotation_DownButton_Click" />
+                        </UniformGrid>
+                    </StackPanel>
+
+                    <Border Background="#FFFFF7ED"
+                            BorderBrush="#FFFED7AA"
+                            BorderThickness="1"
+                            CornerRadius="6"
+                            Padding="10"
+                            Margin="0,16,0,0">
+                        <StackPanel>
+                            <TextBlock Text="安全限幅"
+                                       FontWeight="SemiBold"
+                                       Foreground="#FF9A3412" />
+                            <TextBlock Text="单次目标与反馈偏差上限：50 mm / 10°；超限拒绝下发。目标 500 ms 未刷新时切换为保持当前位置。"
+                                       TextWrapping="Wrap"
+                                       FontSize="12"
+                                       Foreground="#FF9A3412"
+                                       Margin="0,4,0,0" />
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Border>
+
+            <!-- 位姿对比 -->
+            <Border Grid.Column="1" Style="{StaticResource CardStyle}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Text="位姿对比" Style="{StaticResource SectionTitleStyle}" />
+
+                    <Grid Grid.Row="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="12" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="当前反馈（机器人）"
+                                       FontWeight="SemiBold"
+                                       Foreground="#FF0369A1"
+                                       Margin="0,0,0,6" />
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="38" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="30" />
+                                    <RowDefinition Height="30" />
+                                    <RowDefinition Height="30" />
+                                    <RowDefinition Height="30" />
+                                    <RowDefinition Height="30" />
+                                    <RowDefinition Height="30" />
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Grid.Row="0" Text="X" Style="{StaticResource AxisLabelStyle}" />
+                                <TextBlock x:Name="FbXText" Grid.Row="0" Grid.Column="1" Text="—" Style="{StaticResource MonoValueStyle}" />
+                                <TextBlock Grid.Row="1" Text="Y" Style="{StaticResource AxisLabelStyle}" />
+                                <TextBlock x:Name="FbYText" Grid.Row="1" Grid.Column="1" Text="—" Style="{StaticResource MonoValueStyle}" />
+                                <TextBlock Grid.Row="2" Text="Z" Style="{StaticResource AxisLabelStyle}" />
+                                <TextBlock x:Name="FbZText" Grid.Row="2" Grid.Column="1" Text="—" Style="{StaticResource MonoValueStyle}" />
+                                <TextBlock Grid.Row="3" Text="Rx" Style="{StaticResource AxisLabelStyle}" />
+                                <TextBlock x:Name="FbRxText" Grid.Row="3" Grid.Column="1" Text="—" Style="{StaticResource MonoValueStyle}" />
+                                <TextBlock Grid.Row="4" Text="Ry" Style="{StaticResource AxisLabelStyle}" />
+                                <TextBlock x:Name="FbRyText" Grid.Row="4" Grid.Column="1" Text="—" Style="{StaticResource MonoValueStyle}" />
+                                <TextBlock Grid.Row="5" Text="Rz" Style="{StaticResource AxisLabelStyle}" />
+                                <TextBlock x:Name="FbRzText" Grid.Row="5" Grid.Column="1" Text="—" Style="{StaticResource MonoValueStyle}" />
+                            </Grid>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="当前发送目标"
+                                       FontWeight="SemiBold"
+                                       Foreground="#FF7C3AED"
+                                       Margin="0,0,0,6" />
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="38" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="30" />
+                                    <RowDefinition Height="30" />
+                                    <RowDefinition Height="30" />
+                                    <RowDefinition Height="30" />
+                                    <RowDefinition Height="30" />
+                                    <RowDefinition Height="30" />
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Grid.Row="0" Text="X" Style="{StaticResource AxisLabelStyle}" />
+                                <TextBlock x:Name="TgXText" Grid.Row="0" Grid.Column="1" Text="—" Style="{StaticResource MonoValueStyle}" />
+                                <TextBlock Grid.Row="1" Text="Y" Style="{StaticResource AxisLabelStyle}" />
+                                <TextBlock x:Name="TgYText" Grid.Row="1" Grid.Column="1" Text="—" Style="{StaticResource MonoValueStyle}" />
+                                <TextBlock Grid.Row="2" Text="Z" Style="{StaticResource AxisLabelStyle}" />
+                                <TextBlock x:Name="TgZText" Grid.Row="2" Grid.Column="1" Text="—" Style="{StaticResource MonoValueStyle}" />
+                                <TextBlock Grid.Row="3" Text="Rx" Style="{StaticResource AxisLabelStyle}" />
+                                <TextBlock x:Name="TgRxText" Grid.Row="3" Grid.Column="1" Text="—" Style="{StaticResource MonoValueStyle}" />
+                                <TextBlock Grid.Row="4" Text="Ry" Style="{StaticResource AxisLabelStyle}" />
+                                <TextBlock x:Name="TgRyText" Grid.Row="4" Grid.Column="1" Text="—" Style="{StaticResource MonoValueStyle}" />
+                                <TextBlock Grid.Row="5" Text="Rz" Style="{StaticResource AxisLabelStyle}" />
+                                <TextBlock x:Name="TgRzText" Grid.Row="5" Grid.Column="1" Text="—" Style="{StaticResource MonoValueStyle}" />
+                            </Grid>
+                        </StackPanel>
+                    </Grid>
+
+                    <Border Grid.Row="2"
+                            Background="{StaticResource ValueBackgroundBrush}"
+                            BorderBrush="{StaticResource CardBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="6"
+                            Padding="10"
+                            Margin="0,10,0,0">
+                        <StackPanel>
+                            <TextBlock x:Name="DeltaText"
+                                       Text="Δ位置 — mm    Δ姿态 —°"
+                                       FontFamily="Consolas"
+                                       Foreground="{StaticResource MutedBrush}" />
+                            <TextBlock x:Name="TargetLeaseText"
+                                       Text="目标流：等待目标"
+                                       FontSize="12"
+                                       Margin="0,4,0,0"
+                                       Foreground="{StaticResource MutedBrush}" />
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <!-- 目标输入与关节角 -->
+            <Border Grid.Column="2" Style="{StaticResource CardStyle}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel>
+                        <TextBlock Text="目标位姿输入" Style="{StaticResource SectionTitleStyle}" />
+                        <TextBlock Text="绝对目标（mm / °），应用前会进行安全限幅校验"
+                                   Style="{StaticResource CaptionStyle}"
+                                   TextWrapping="Wrap"
+                                   Margin="0,0,0,8" />
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="46" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.Row="0" Text="X" Style="{StaticResource AxisLabelStyle}" />
+                            <TextBox x:Name="TargetXInput" Grid.Row="0" Grid.Column="1" Text="0.00" Style="{StaticResource ValueBoxStyle}" />
+                            <TextBlock Grid.Row="1" Text="Y" Style="{StaticResource AxisLabelStyle}" />
+                            <TextBox x:Name="TargetYInput" Grid.Row="1" Grid.Column="1" Text="0.00" Style="{StaticResource ValueBoxStyle}" />
+                            <TextBlock Grid.Row="2" Text="Z" Style="{StaticResource AxisLabelStyle}" />
+                            <TextBox x:Name="TargetZInput" Grid.Row="2" Grid.Column="1" Text="0.00" Style="{StaticResource ValueBoxStyle}" />
+                            <TextBlock Grid.Row="3" Text="Rx" Style="{StaticResource AxisLabelStyle}" />
+                            <TextBox x:Name="TargetRxInput" Grid.Row="3" Grid.Column="1" Text="0.00" Style="{StaticResource ValueBoxStyle}" />
+                            <TextBlock Grid.Row="4" Text="Ry" Style="{StaticResource AxisLabelStyle}" />
+                            <TextBox x:Name="TargetRyInput" Grid.Row="4" Grid.Column="1" Text="0.00" Style="{StaticResource ValueBoxStyle}" />
+                            <TextBlock Grid.Row="5" Text="Rz" Style="{StaticResource AxisLabelStyle}" />
+                            <TextBox x:Name="TargetRzInput" Grid.Row="5" Grid.Column="1" Text="0.00" Style="{StaticResource ValueBoxStyle}" />
+                        </Grid>
+
+                        <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                            <Button x:Name="ApplyTargetButton"
+                                    Content="应用目标"
+                                    Style="{StaticResource PrimaryButtonStyle}"
+                                    IsEnabled="False"
+                                    Click="ApplyTarget_Click" />
+                            <Button x:Name="SyncTargetButton"
+                                    Content="读取当前反馈"
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    IsEnabled="False"
+                                    Click="SyncTarget_Click" />
+                        </StackPanel>
+
+                        <Separator Margin="0,14,0,12" />
+
+                        <TextBlock Text="6 轴关节角（反馈）" Style="{StaticResource SectionTitleStyle}" />
+                        <UniformGrid Columns="2">
+                            <TextBlock x:Name="Joint1Text" Text="J1  —" Style="{StaticResource MonoValueStyle}" Margin="0,4,10,4" />
+                            <TextBlock x:Name="Joint2Text" Text="J2  —" Style="{StaticResource MonoValueStyle}" Margin="0,4,10,4" />
+                            <TextBlock x:Name="Joint3Text" Text="J3  —" Style="{StaticResource MonoValueStyle}" Margin="0,4,10,4" />
+                            <TextBlock x:Name="Joint4Text" Text="J4  —" Style="{StaticResource MonoValueStyle}" Margin="0,4,10,4" />
+                            <TextBlock x:Name="Joint5Text" Text="J5  —" Style="{StaticResource MonoValueStyle}" Margin="0,4,10,4" />
+                            <TextBlock x:Name="Joint6Text" Text="J6  —" Style="{StaticResource MonoValueStyle}" Margin="0,4,10,4" />
+                        </UniformGrid>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+
+        <!-- 日志 -->
+        <Border Grid.Row="2" Style="{StaticResource CardStyle}" Padding="10" Margin="6,0,6,6">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <Grid>
+                    <TextBlock Text="通信 / 错误日志"
+                               FontWeight="SemiBold"
+                               VerticalAlignment="Center" />
+                    <Button Content="清空"
+                            HorizontalAlignment="Right"
+                            Height="26"
+                            Padding="12,0"
+                            Background="#FFE2E8F0"
+                            BorderThickness="0"
+                            Cursor="Hand"
+                            Click="ClearLog_Click" />
+                </Grid>
+
+                <ListBox x:Name="LogList"
+                         Grid.Row="1"
+                         Margin="0,6,0,0"
+                         FontFamily="Consolas"
+                         FontSize="12"
+                         Background="{StaticResource ValueBackgroundBrush}"
+                         BorderBrush="{StaticResource CardBorderBrush}"
+                         BorderThickness="1"
+                         ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                         ScrollViewer.VerticalScrollBarVisibility="Auto">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Text}"
+                                       Foreground="{Binding Foreground}"
+                                       TextWrapping="NoWrap" />
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </Grid>
+        </Border>
+
+        <!-- 状态栏 -->
+        <Border Grid.Row="3"
+                Background="#FF0F172A"
+                CornerRadius="6"
+                Padding="12,7"
+                Margin="6,0,6,6">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock x:Name="StatusText"
+                           Text="就绪"
+                           Foreground="White"
+                           FontSize="12" />
+                <TextBlock Grid.Column="1"
+                           Text="反馈超时 200 ms · 目标看门狗 500 ms"
+                           Foreground="#FF94A3B8"
+                           FontSize="12"
+                           HorizontalAlignment="Right" />
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

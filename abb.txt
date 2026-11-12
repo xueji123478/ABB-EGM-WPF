@@ -1,0 +1,101 @@
+MODULE Module1
+    ! Identifier for EGM process
+    VAR egmident egm_id;
+    ! Current state of EGM process on controller
+    VAR egmstate egm_state;
+
+    ! Convergence criteria for translation and rotation
+    ! mm 
+    CONST egm_minmax egm_minmax_translation:=[-0.2,0.2];
+    ! degrees
+    CONST egm_minmax egm_minmax_rotation:=[-0.2,0.2];
+
+
+
+    ! Correction frame and sensor frame for path correction
+    LOCAL CONST pose egm_correction_frame:=[[0,0,0],[1,0,0,0]];
+    LOCAL CONST pose egm_sensor_frame:=[[0,0,0],[1,0,0,0]];
+    
+    ! Main entry
+    PROC main()
+        EGM_POSE_MOVEMENT;
+    ENDPROC
+    
+    ! EGM pose guidance movement:
+    ! The external device sends cartesian position + euler angles,
+    ! and the robot moves to that target.
+    PROC EGM_POSE_MOVEMENT()
+        ! 1. Register the EGM identity (only once)
+        EGMGetId egm_id;
+        egm_state:=EGMGetState(egm_id);
+    
+        ! 2. Setup UdpUc communication
+        !    Device name must match the one configured in RobotStudio.
+        IF egm_state<=EGM_STATE_CONNECTED THEN
+            TPWrite "EGM State: Preparing controller for EGM communication.";
+            EGMSetupUC ROB_1,egm_id,"default","PC",\Pose;
+        ENDIF
+    
+        ! 3. Activate EGM and define static data (only once)
+        EGMActPose egm_id
+        \Tool:=tool0,
+        egm_correction_frame,EGM_FRAME_BASE,
+        egm_sensor_frame,EGM_FRAME_BASE
+        \x:=egm_minmax_translation
+        \y:=egm_minmax_translation
+        \z:=egm_minmax_translation
+        \rx:=egm_minmax_rotation
+        \ry:=egm_minmax_rotation
+        \rz:=egm_minmax_rotation
+        \LpFilter:=35
+        \MaxSpeedDeviation:=50;
+    
+        ! 4. Loop and wait for external commands
+        WHILE TRUE DO
+            ! Refresh state (for debug output)
+            egm_state:=EGMGetState(egm_id);
+    
+            IF egm_state=EGM_STATE_CONNECTED THEN
+                TPWrite "EGM State: Waiting for movement request.";
+            ENDIF
+    
+            ! Execute one pose guidance movement
+            ! (blocks until convergence or error)
+            !
+            ! Behaviour note:
+            !   EGMRunPose returns when the convergence window has been fulfilled
+            !   for \CondTime seconds (1 s here), or on EGM stop / communication error.
+            !   While the PC keeps updating the target, the robot follows continuously.
+            !   When the target is static for about 1 s, the instruction returns and
+            !   this WHILE loop re-enters it immediately (idle re-arm).
+            !   For a persistent high-rate stream, evaluate removing the convergence
+            !   arguments (verify the exact behaviour in the EGM/RAPID manual first)
+            !   so EGMRunPose stays active until an explicit EGM stop is requested.
+            EGMRunPose egm_id,EGM_STOP_HOLD
+            \x\y\z\rx\ry\rz
+            \CondTime:=1
+            \RampInTime:=0;
+    
+            ! Check if robot is moving
+            egm_state:=EGMGetState(egm_id);
+            IF egm_state=EGM_STATE_RUNNING THEN
+                TPWrite "EGM State: Movement request received. Robot is moving.";
+            ENDIF
+    
+            IF egm_state<EGM_STATE_CONNECTED THEN
+                WaitTime 0.1;
+            ENDIF
+        ENDWHILE
+    
+        ! Release EGM identity (normally not reached due to WHILE TRUE)
+        EGMReset egm_id;
+    
+    ERROR
+        ! Communication error: warn and retry after a short wait
+        IF ERRNO=ERR_UDPUC_COMM THEN
+            TPWrite "EGM Warning: Robot is not detecting any external devices.";
+            WaitTime 1;
+            TRYNEXT;
+        ENDIF
+    ENDPROC
+ENDMODULE
