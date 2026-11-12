@@ -1,4 +1,4 @@
-# WPF-Example — ABB EGM 上位机示例
+# ABB-EGM-WPF — ABB EGM 上位机示例
 
 基于 **.NET 8 + WPF** 的 ABB **EGM（Externally Guided Motion，外部引导运动）** 姿态引导示例程序。
 程序通过 UDP 与 IRC5 控制器交换 **Protobuf** 编码的 `EgmSensor` / `EgmFeedBack` 消息，
