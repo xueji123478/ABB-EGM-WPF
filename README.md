@@ -28,8 +28,20 @@
 | `EgmClient.cs` | UDP 收发、会话健康度、后台发送线程与事件回调 |
 | `EgmProtocol.cs` | EGM 消息组包（`EgmSensor`）与解析（`EgmFeedBack`） |
 | `Egm.cs` | 由 `.proto` 生成的 Google Protobuf 代码（命名空间 `Abb.Egm`） |
-| `abb.txt` | 机器人端 RAPID 示例模块（`EGM_POSE_MOVEMENT`） |
+| `abb.txt` | **ABB 机器人端 RAPID 程序**（模块 `Module1`，入口 `EGM_POSE_MOVEMENT`），需加载到 IRC5 控制器运行，详见下文 |
 | `WPFProject.sln` / `WPFProject.csproj` | 解决方案与项目文件（`net8.0-windows`，`UseWPF`） |
+
+## 机器人端 RAPID 代码（`abb.txt`）
+
+`abb.txt` 不是上位机代码，而是**运行在 ABB IRC5 控制器上的 RAPID 程序**，负责把机器人接入 EGM 会话并跟随上位机下发的目标位姿。模块名为 `Module1`，入口 `PROC main()` 调用 `EGM_POSE_MOVEMENT`，主要流程：
+
+- `EGMGetId` / `EGMGetState`：注册并查询 EGM 标识与当前状态。
+- `EGMSetupUC ROB_1,egm_id,"default","PC",\Pose`：建立 UDPUC 通信；设备名 `PC` 必须与 RobotStudio 中配置的 UDPUC 设备名一致（对端 IP 填运行上位机的电脑）。
+- `EGMActPose`：启用位姿引导，`\Tool:=tool0`，基坐标系，收敛窗口 ±0.2 mm / ±0.2°（`egm_minmax_translation` / `egm_minmax_rotation`），`\LpFilter:=35`，`\MaxSpeedDeviation:=50`。
+- `EGMRunPose egm_id,EGM_STOP_HOLD \x\y\z\rx\ry\rz \CondTime:=1 \RampInTime:=0`：执行一次位姿引导；目标静止约 1 s 后返回，外层 `WHILE TRUE` 立即重新进入，因此上位机持续刷新目标时机器人连续跟随。
+- `ERROR` 段处理 `ERR_UDPUC_COMM`：提示“未检测到外部设备”，等待 1 s 后 `TRYNEXT` 重试。
+
+**加载与运行**：在 RobotStudio 的 RAPID 编辑器（或示教器“程序编辑器”）中加载该文件为模块（`.txt` 可直接加载，也可另存为 `.mod`），确认 UDPUC 设备 `PC` 指向电脑 IP、端口 `6510`，然后运行 `main`。
 
 ## 环境要求
 
